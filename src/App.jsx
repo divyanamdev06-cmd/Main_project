@@ -26,6 +26,8 @@ import Analytics from "./Pages/Analytics";
 
 import RecruiterDashboard from "./components/recruiterDashboard/RecruiterDashboard.jsx";
 import RecruiterHome from "./components/recruiterDashboard/RecruiterHome.jsx";
+import RecruiterApplications from "./components/recruiterDashboard/RecruiterApplications.jsx";
+import RecruiterAnalytics from "./components/recruiterDashboard/RecruiterAnalytics.jsx";
 
 function App() {
   return (
@@ -43,9 +45,9 @@ function App() {
         <Route
           path="/admin"
           element={
-            // <ProtectedRoute roles={["admin"]}>
+            <ProtectedRoute roles={["admin"]}>
               <AdminDashboard />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         >
           <Route index element={<Admindashboarddefault />} />
@@ -80,7 +82,10 @@ function App() {
           }
         >
           <Route index element={<RecruiterHome />} />
+          <Route path="analytics" element={<RecruiterAnalytics />} />
           <Route path="jobs" element={<Jobs />} />
+          <Route path="applications" element={<RecruiterApplications />} />
+          <Route path="categories" element={<Categories readOnly />} />
           <Route path="profile" element={<UserProfile />} />
         </Route>
 

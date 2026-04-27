@@ -85,6 +85,48 @@ export async function apiDelete(url, config) {
   return assertApiSuccess(res);
 }
 
+/** Multipart (e.g. resume). Do not set Content-Type — browser sets boundary. */
+export async function apiPostMultipart(url, formData) {
+  const res = await apiClient.post(url, formData);
+  return assertApiSuccess(res);
+}
+
+/**
+ * Download binary (e.g. PDF resume). Throws with server message if JSON error body.
+ * @returns {{ blob: Blob, filename: string }}
+ */
+export async function downloadAuthenticatedBlob(url, defaultFilename = "download") {
+  const res = await apiClient.get(url, { responseType: "blob" });
+  const ct = String(res.headers["content-type"] || "");
+  if (ct.includes("application/json")) {
+    const text = await res.data.text();
+    let msg = "Download failed";
+    try {
+      const j = JSON.parse(text);
+      msg = typeof j.message === "string" ? j.message : msg;
+    } catch {
+      /* ignore */
+    }
+    const err = new Error(msg);
+    err.response = { data: { message: msg } };
+    throw err;
+  }
+  let filename = defaultFilename;
+  const cd = res.headers["content-disposition"];
+  if (cd) {
+    const m = /filename\*=UTF-8''([^;\n]+)|filename="([^"]+)"/i.exec(cd);
+    const raw = m?.[1] || m?.[2];
+    if (raw) {
+      try {
+        filename = decodeURIComponent(raw.replace(/\+/g, " "));
+      } catch {
+        filename = raw;
+      }
+    }
+  }
+  return { blob: res.data, filename };
+}
+
 /** Pick first array field from API JSON (handles minor response-shape drift). */
 export function extractList(payload, keys = ["data"]) {
   if (!payload || typeof payload !== "object") return [];

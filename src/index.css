@@ -1,7 +1,17 @@
 @import "tailwindcss";
 
+/* JobNest theme: deep slate + teal primary + warm amber accents */
+:root {
+  --jn-ink: #0f172a;
+  --jn-teal: #0d9488;
+  --jn-teal-dark: #0f766e;
+  --jn-amber: #fbbf24;
+  --jn-amber-soft: #fef3c7;
+}
+
 .input {
-  @apply w-full border border-gray-300 bg-white rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#F6C85F]/80 focus:border-yellow-300;
+  @apply w-full border border-gray-300 bg-white rounded-xl px-3 py-2.5 text-sm outline-none transition
+    focus:ring-2 focus:ring-teal-500/35 focus:border-teal-500;
 }
 
 /* App-wide UI primitives (keeps pages consistent) */
@@ -18,7 +28,7 @@
 }
 
 .badge-soft {
-  @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+  @apply bg-teal-50 border-teal-200 text-teal-900;
 }
 
 .btn {
@@ -27,7 +37,7 @@
 }
 
 .btn-primary {
-  @apply bg-[#F6C85F] text-gray-900 hover:bg-[#f2bf45] focus:ring-yellow-300;
+  @apply bg-teal-600 text-white shadow-sm shadow-teal-900/10 hover:bg-teal-700 focus:ring-teal-400;
 }
 
 .btn-outline {

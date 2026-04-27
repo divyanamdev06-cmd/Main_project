@@ -1,124 +1,194 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Bell, Lock, Save, Shield, SlidersHorizontal } from "lucide-react";
+import { useDispatch } from "react-redux";
+import AdminPageHeader from "../components/admin/AdminPageHeader.jsx";
+import { apiGet, apiPut, getApiErrorMessage } from "../lib/apiClient.js";
+import { useToast } from "../components/ui/ToastProvider.jsx";
+import { setCredentials } from "../store/authSlice.js";
+
+const tabs = [
+  { id: "profile", label: "Profile", icon: SlidersHorizontal },
+  { id: "security", label: "Security", icon: Lock },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "system", label: "System", icon: Shield },
+];
 
 export default function AdminSettings() {
+  const { toast } = useToast();
+  const dispatch = useDispatch();
+  const [tab, setTab] = useState("profile");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: "Admin",
-    email: "admin@gmail.com",
-    password: "",
+    name: "",
+    email: "",
+    mobile: "",
+    bio: "",
   });
 
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const payload = await apiGet("/user/me");
+      const u = payload?.data ?? payload;
+      setForm((f) => ({
+        ...f,
+        name: u.name || "",
+        email: u.email || "",
+        mobile: u.mobile || "",
+        bio: u.bio || "",
+      }));
+    } catch (err) {
+      toast({
+        type: "error",
+        title: "Could not load profile",
+        message: getApiErrorMessage(err),
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      const payload = await apiPut("/user/profile/complete", {
+        name: form.name.trim(),
+        mobile: form.mobile.trim(),
+        bio: form.bio,
+      });
+      const updated = payload?.data ?? payload;
+      toast({ type: "success", title: "Saved", message: payload?.message || "Profile updated." });
+      try {
+        const raw = localStorage.getItem("jobnest_auth");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.token && updated) {
+            dispatch(setCredentials({ token: parsed.token, user: updated }));
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+      await load();
+    } catch (err) {
+      toast({ type: "error", title: "Save failed", message: getApiErrorMessage(err) });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="mt-20 md:mt-16">
-      <h1 className="text-2xl font-bold text-gray-700 mb-6">
-        ⚙ Settings
-      </h1>
+    <div className="w-full max-w-6xl">
+      <AdminPageHeader
+        title="Settings"
+        description="Manage your administrator profile. Other sections are placeholders for future security and system controls."
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Sidebar Settings Menu */}
-        <div className="bg-white rounded-xl shadow-md p-4 space-y-3">
-          <p className="font-semibold text-gray-600">Settings Menu</p>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <aside className="lg:col-span-3">
+          <nav className="flex flex-col gap-1 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-sm ring-1 ring-slate-900/5">
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
+                  tab === id
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-900/20"
+                    : "text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+                {label}
+              </button>
+            ))}
+          </nav>
+        </aside>
 
-          <button className="w-full text-left px-4 py-2 rounded-lg bg-[#F6C85F] text-white">
-            Profile Settings
-          </button>
+        <div className="lg:col-span-9">
+          {tab === "profile" && (
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-8">
+              <h2 className="text-lg font-bold text-slate-900">Profile</h2>
+              <p className="mt-1 text-sm text-slate-600">Name and contact sync with your JobNest account.</p>
 
-          <button className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100">
-            Security
-          </button>
-
-          <button className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100">
-            Notifications
-          </button>
-
-          <button className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100">
-            System
-          </button>
-        </div>
-
-        {/* Settings Form */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-          
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Profile Settings
-          </h2>
-
-          <div className="space-y-4">
-            
-            {/* Name */}
-            <div>
-              <label className="text-sm text-gray-500">Name</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
-                className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              {loading ? (
+                <p className="mt-8 text-sm text-slate-500">Loading…</p>
+              ) : (
+                <div className="mt-6 space-y-5 max-w-xl">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Name</label>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      className="input mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Email</label>
+                    <input type="email" value={form.email} readOnly className="input mt-1.5 cursor-not-allowed bg-slate-50 text-slate-600" />
+                    <p className="mt-1 text-xs text-slate-500">Email changes require a future admin workflow.</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Mobile</label>
+                    <input
+                      type="tel"
+                      value={form.mobile}
+                      onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                      className="input mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Bio</label>
+                    <textarea
+                      value={form.bio}
+                      onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                      rows={4}
+                      className="input mt-1.5 min-h-[120px]"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="btn btn-primary inline-flex items-center gap-2 px-6 py-2.5"
+                  >
+                    <Save className="h-4 w-4" aria-hidden />
+                    {saving ? "Saving…" : "Save changes"}
+                  </button>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Email */}
-            <div>
-              <label className="text-sm text-gray-500">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
-                className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+          {tab === "security" && (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center">
+              <Lock className="mx-auto h-10 w-10 text-slate-400" aria-hidden />
+              <p className="mt-4 font-semibold text-slate-800">Security center</p>
+              <p className="mt-2 text-sm text-slate-600">Password policies, 2FA, and session controls will appear here.</p>
             </div>
+          )}
 
-            {/* Password */}
-            <div>
-              <label className="text-sm text-gray-500">New Password</label>
-              <input
-                type="password"
-                placeholder="Enter new password"
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
-                className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+          {tab === "notifications" && (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center">
+              <Bell className="mx-auto h-10 w-10 text-slate-400" aria-hidden />
+              <p className="mt-4 font-semibold text-slate-800">Notifications</p>
+              <p className="mt-2 text-sm text-slate-600">Email and in-app alerts for admin events — coming soon.</p>
             </div>
+          )}
 
-            {/* Save Button */}
-            <button className="bg-[#F6C85F] hover:bg-yellow-400 text-white px-6 py-2 rounded-lg transition">
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Extra Settings Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        
-        <div className="bg-white p-5 rounded-xl shadow-md">
-          <h3 className="font-semibold text-gray-700 mb-2">
-            Notification Settings
-          </h3>
-          <p className="text-sm text-gray-500 mb-3">
-            Manage alerts & emails
-          </p>
-
-          <button className="bg-[#F6C85F] text-white px-4 py-2 rounded-lg">
-            Enable Notifications
-          </button>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl shadow-md">
-          <h3 className="font-semibold text-gray-700 mb-2">
-            System Settings
-          </h3>
-          <p className="text-sm text-gray-500 mb-3">
-            Control system behavior
-          </p>
-
-          <button className="bg-red-400 text-white px-4 py-2 rounded-lg">
-            Maintenance Mode
-          </button>
+          {tab === "system" && (
+            <div className="rounded-2xl border border-dashed border-amber-200/80 bg-amber-50/50 p-8 text-center">
+              <Shield className="mx-auto h-10 w-10 text-amber-600" aria-hidden />
+              <p className="mt-4 font-semibold text-slate-800">System</p>
+              <p className="mt-2 text-sm text-slate-600">Maintenance mode and feature flags — connect to backend when ready.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
