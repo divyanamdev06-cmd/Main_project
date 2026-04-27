@@ -42,16 +42,21 @@ export default function Applications() {
   return (
     <div>
       {/* Heading */}
-      <h1 className="text-2xl font-bold text-gray-700 mb-6">
-        My Applications
-      </h1>
+      <div className="card p-6 mb-6">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
+          My Applications
+        </h1>
+        <p className="section-subtitle mt-1">
+          Track your application status and withdraw if needed.
+        </p>
+      </div>
 
       {/* Applications List */}
       <div className="space-y-4">
         {applications.map((app) => (
           <div
             key={app._id}
-            className="bg-white shadow-md rounded-xl p-5 border-l-4 border-[#F6C85F] hover:shadow-lg transition"
+            className="card p-5 hover:shadow-md transition"
           >
             <div className="flex flex-col md:flex-row justify-between gap-4">
 
@@ -78,7 +83,7 @@ export default function Applications() {
                   {app.status}
                 </span>
 
-                <button className="text-sm text-red-500 hover:underline">
+                <button className="btn btn-ghost text-sm text-red-600 hover:bg-red-50">
                   Withdraw
                 </button>
               </div>

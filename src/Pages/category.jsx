@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-
-const API = "http://localhost:3000/api/v1/category";
+import {
+  apiDelete,
+  apiGet,
+  apiPost,
+  apiPut,
+  extractList,
+  getApiErrorMessage,
+} from "../lib/apiClient.js";
+import { useToast } from "../components/ui/ToastProvider.jsx";
+import Modal from "../components/ui/Modal.jsx";
 
 export default function Categories() {
+  const { toast } = useToast();
   const [categories, setCategories] = useState([]);
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState(null);
@@ -17,10 +25,13 @@ export default function Categories() {
   // FETCH
   const fetchData = async () => {
     try {
-      const res = await axios.get(`${API}/get`);
-      setCategories(res.data.data);
-    } catch {
-      setError("Failed to load categories");
+      const payload = await apiGet(`/category/get`);
+      setCategories(extractList(payload, ["data", "categories"]));
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      setCategories([]);
+      toast({ type: "error", title: "Could not load categories", message: msg });
     }
   };
 
@@ -42,9 +53,19 @@ export default function Categories() {
       }
 
       if (edit) {
-        await axios.put(`${API}/update/${edit._id}`, form);
+        const payload = await apiPut(`/category/update/${edit._id}`, form);
+        toast({
+          type: "success",
+          title: "Category updated",
+          message: payload?.message || "Category updated successfully.",
+        });
       } else {
-        await axios.post(`${API}/create`, form);
+        const payload = await apiPost(`/category/create`, form);
+        toast({
+          type: "success",
+          title: "Category created",
+          message: payload?.message || "Category created successfully.",
+        });
       }
 
       setOpen(false);
@@ -52,8 +73,10 @@ export default function Categories() {
       setForm({ name: "", description: "" });
       fetchData();
       setError("");
-    } catch {
-      setError("Something went wrong");
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      toast({ type: "error", title: "Save failed", message: msg });
     }
   };
 
@@ -61,10 +84,17 @@ export default function Categories() {
   const handleDelete = async (id) => {
     if (!confirm("Delete category?")) return;
     try {
-      await axios.delete(`${API}/delete/${id}`);
+      const payload = await apiDelete(`/category/delete/${id}`);
       fetchData();
-    } catch {
-      setError("Delete failed");
+      toast({
+        type: "success",
+        title: "Category deleted",
+        message: payload?.message || "Category deleted successfully.",
+      });
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      toast({ type: "error", title: "Delete failed", message: msg });
     }
   };
 
@@ -76,7 +106,7 @@ export default function Categories() {
   };
 
   return (
-    <div className="p-6 bg-white mt-12 h-screen">
+    <div className="p-4 sm:p-6 bg-white mt-12 min-h-screen">
 
       {/* HEADER */}
       <div className="flex justify-between mb-6">
@@ -97,7 +127,7 @@ export default function Categories() {
       )}
 
       {/* CARDS */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {categories.map((cat) => (
           <div
             key={cat._id}
@@ -124,43 +154,49 @@ export default function Categories() {
       </div>
 
       {/* MODAL */}
-      {open && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {edit ? "Update Category" : "Add Category"}
-            </h2>
+      <Modal
+        open={open}
+        title={edit ? "Update Category" : "Add Category"}
+        onClose={() => {
+          setOpen(false);
+          setEdit(null);
+        }}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setEdit(null);
+              }}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+            <button type="button" onClick={handleSubmit} className="btn btn-primary">
+              Save
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <input
+            name="name"
+            placeholder="Category name"
+            value={form.name}
+            onChange={handleChange}
+            className="input"
+          />
 
-            <input
-              name="name"
-              placeholder="Category Name"
-              value={form.name}
-              onChange={handleChange}
-              className="input mb-3"
-            />
-
-            <textarea
-              name="description"
-              placeholder="Description"
-              value={form.description}
-              onChange={handleChange}
-              className="input"
-            />
-
-            <div className="flex justify-end gap-3 mt-4">
-              <button onClick={() => setOpen(false)} className="border px-3 py-1 rounded">
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="bg-[#F6C85F] px-3 py-1 rounded text-white"
-              >
-                Save
-              </button>
-            </div>
-          </div>
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={form.description}
+            onChange={handleChange}
+            className="input min-h-[110px]"
+          />
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

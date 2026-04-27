@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
 export default function FindJobs() {
   const [jobs, setJobs] = useState([]);
@@ -40,30 +39,37 @@ export default function FindJobs() {
   return (
     <div>
       {/* Heading */}
-      <h1 className="text-2xl font-bold text-gray-700 mb-6">
-        Find Jobs
-      </h1>
+      <div className="card p-6 mb-6">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
+          Find Jobs
+        </h1>
+        <p className="section-subtitle mt-1">
+          Browse curated roles and apply in one click.
+        </p>
+      </div>
 
       {/* Job Cards */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {jobs.map((job) => (
           <div
             key={job._id}
-            className="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition border-l-4 border-yellow-400"
+            className="card p-5 hover:shadow-md transition"
           >
-            <h2 className="text-xl font-semibold text-gray-800">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-lg font-bold text-gray-900">
               {job.title}
-            </h2>
+              </h2>
+              <span className="badge badge-soft">{job.type}</span>
+            </div>
 
             <p className="text-gray-600 mt-1">{job.company}</p>
 
             <div className="text-sm text-gray-500 mt-2 space-y-1">
               <p>📍 {job.location}</p>
-              <p>💼 {job.type}</p>
               <p>💰 {job.salary}</p>
             </div>
 
-            <button className="mt-4 w-full bg-[#F6C85F] text-white py-2 rounded-lg hover:bg-yellow-500 transition">
+            <button className="mt-4 w-full btn btn-primary">
               Apply Now
             </button>
           </div>

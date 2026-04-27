@@ -11,8 +11,7 @@ const blogs = [
     image: "https://staticlearn.shine.com/l/m/images/blog/Tell_about_yourself.webp",
   },
   {
-    title:
-      "How to Answer “What is Your Biggest Failure?” (With Sample Answer)",
+    title: "How to Answer “What is Your Biggest Failure?” (With Sample Answer)",
     category: "Interview Questions",
     author: "Harshita Khullar",
     time: "2044d Ago",
@@ -23,88 +22,78 @@ const blogs = [
 
 const Blogs = () => {
   return (
-    <div className="w-full bg-[#F8F8F7] py-16">
-      <div className="max-w-6xl mx-auto px-6">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Trending Blogs
-          </h2>
-
-          {/* Arrows */}
-          <div className="flex gap-3">
-            <button className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+    <section className="border-t border-gray-100 bg-[#F8F8F7] py-12 sm:py-16">
+      <div className="container-app">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="section-title">Trending blogs</h2>
+            <p className="section-subtitle mt-1 max-w-md">Tips and stories to help you interview with confidence.</p>
+          </div>
+          <div className="flex shrink-0 gap-2 self-start sm:self-auto">
+            <button
+              type="button"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:bg-gray-50"
+              aria-label="Previous"
+            >
               <ArrowLeft size={18} />
             </button>
-            <button className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+            <button
+              type="button"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:bg-gray-50"
+              aria-label="Next"
+            >
               <ArrowRight size={18} />
             </button>
           </div>
         </div>
 
-        {/* Blog Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {blogs.map((blog, index) => (
-            <div
-              key={index}
-              className="bg-white  rounded-2xl border border-gray-200 p-6 flex justify-between items-start hover:shadow-md transition"
-            >
-              {/* Left Content */}
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-semibold text-gray-800 leading-snug">
-                  {blog.title}
-                </h3>
-
-                <p className="text-sm text-gray-400 mt-2">
-                  {blog.category}
-                </p>
-
-                {/* Author */}
-                <div className="flex items-center gap-2 mt-3">
-                  <div className="w-6 h-6 rounded-full bg-gray-300"></div>
-                  <span className="text-sm text-gray-600">
-                    By {blog.author}
-                  </span>
-                </div>
-
-                {/* Bottom Info */}
-                <div className="flex items-center gap-4 text-sm text-gray-400 mt-6">
-                  <div className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {blog.time}
+        <ul className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {blogs.map((blog) => (
+            <li key={blog.title}>
+              <article className="card flex flex-col gap-5 p-6 transition hover:shadow-md sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-semibold leading-snug text-gray-900">{blog.title}</h3>
+                  <p className="mt-2 text-sm text-gray-500">{blog.category}</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className="h-6 w-6 shrink-0 rounded-full bg-gray-200" />
+                    <span className="text-sm text-gray-600">By {blog.author}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Eye size={14} />
-                    {blog.views}
+                  <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                    <span className="inline-flex items-center gap-1">
+                      <Clock size={14} />
+                      {blog.time}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Eye size={14} />
+                      {blog.views}
+                    </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Right Image */}
-              <div className="flex flex-col items-end justify-between">
-                <img
-                  src={blog.image}
-                  alt="blog"
-                  className="w-28 h-20 object-cover rounded-md"
-                />
-
-                <button className="mt-6 px-5 py-2 border border-yellow-400 text-yellow-600 rounded-full text-sm hover:bg-yellow-50 transition">
-                  Read Now
-                </button>
-              </div>
-            </div>
+                <div className="flex shrink-0 flex-row items-center justify-between gap-4 sm:flex-col sm:items-end">
+                  <img
+                    src={blog.image}
+                    alt=""
+                    className="h-20 w-28 rounded-lg object-cover ring-1 ring-black/5 sm:h-24 sm:w-32"
+                  />
+                  <button type="button" className="btn btn-outline rounded-full px-4 py-2 text-sm whitespace-nowrap">
+                    Read now
+                  </button>
+                </div>
+              </article>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        {/* View All */}
-        <div className="flex justify-center mt-10">
-          <button className="text-yellow-600 font-medium border-b border-yellow-500 hover:text-yellow-700">
-            View All
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            className="text-sm font-semibold text-yellow-700 underline decoration-yellow-400/80 underline-offset-4 hover:text-yellow-800"
+          >
+            View all
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

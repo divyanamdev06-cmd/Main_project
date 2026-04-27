@@ -1,9 +1,9 @@
 export default function  Admindashboarddefault() {
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 space-y-6 mt-16 md:ml-64">
+    <div className="w-full max-w-6xl mx-auto space-y-6">
 
       {/* Top Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
 
         <Card title="TOTAL USERS" value="120" />
         <Card title="ACTIVE USERS" value="98" />
@@ -13,15 +13,15 @@ export default function  Admindashboarddefault() {
       </div>
 
       {/* Bottom Section */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Graph */}
-        <div className="bg-white p-6 rounded-xl shadow-md h-64 flex items-center justify-center text-gray-400">
+        <div className="card p-6 h-72 flex items-center justify-center text-gray-400">
           📊 Graph Area
         </div>
 
         {/* Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="card p-6">
           <h3 className="text-gray-600 font-semibold mb-4">
             Recent Activity
           </h3>
@@ -42,9 +42,10 @@ export default function  Admindashboarddefault() {
 /* Card */
 function Card({ title, value }) {
   return (
-    <div className="bg-white p-5 rounded-xl shadow-md hover:shadow-xl transition border-l-4 border-yellow-400">
-      <h3 className="text-gray-400 text-xs font-semibold">{title}</h3>
-      <p className="text-2xl font-bold mt-2 text-gray-700">{value}</p>
+    <div className="card p-5">
+      <h3 className="text-gray-500 text-xs font-semibold">{title}</h3>
+      <p className="text-3xl font-extrabold mt-2 text-gray-900">{value}</p>
+      <div className="mt-3 h-1.5 w-16 rounded-full bg-yellow-200 mx-auto" />
     </div>
   );
 }

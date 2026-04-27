@@ -1,12 +1,27 @@
 export function UserHome() {
   return (
-    <div className="space-y-6 text-center">
+    <div className="space-y-6">
 
-      <h2 className="text-xl font-semibold text-gray-700">
-        Welcome Student 👋
-      </h2>
+      <div className="card p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="text-sm text-gray-500">Welcome back</div>
+            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+              Student Dashboard
+            </h2>
+            <p className="section-subtitle mt-1">
+              Track your applications and discover roles that match your skills.
+            </p>
+          </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+          <div className="flex gap-2">
+            <button className="btn btn-primary">Find Jobs</button>
+            <button className="btn btn-outline">Update Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
         <Card title="Enrolled Courses" value="5" />
         <Card title="Applications" value="3" />
@@ -20,9 +35,12 @@ export function UserHome() {
 
 function Card({ title, value }) {
   return (
-    <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-400">
-      <h3 className="text-gray-400 text-sm">{title}</h3>
-      <p className="text-2xl font-bold">{value}</p>
+    <div className="card p-5">
+      <h3 className="text-gray-500 text-sm font-semibold">{title}</h3>
+      <p className="text-3xl font-extrabold tracking-tight text-gray-900 mt-2">
+        {value}
+      </p>
+      <div className="mt-3 h-1.5 w-16 rounded-full bg-yellow-200" />
     </div>
   );
 }

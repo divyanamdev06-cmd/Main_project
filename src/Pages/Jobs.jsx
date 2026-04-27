@@ -219,13 +219,20 @@
 // }
 
 import { useEffect, useState } from "react";
-import axios from "axios";
-
-const JOB_API = "http://localhost:3000/api/v1/job";
-const CAT_API = "http://localhost:3000/api/v1/category";
-
+import {
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+  extractList,
+  getApiErrorMessage,
+} from "../lib/apiClient.js";
+import { useToast } from "../components/ui/ToastProvider.jsx";
+import Modal from "../components/ui/Modal.jsx";
 
 export default function Jobs() {
+  const { toast } = useToast();
   const [jobs, setJobs] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -247,20 +254,26 @@ export default function Jobs() {
   // FETCH JOBS
   const fetchJobs = async () => {
     try {
-      const res = await axios.get(`${JOB_API}/get`);
-      setJobs(res.data.jobs);
-    } catch {
-      setError("Failed to load jobs");
+      const payload = await apiGet(`/job/get`);
+      setJobs(extractList(payload, ["data", "jobs"]));
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      setJobs([]);
+      toast({ type: "error", title: "Could not load jobs", message: msg });
     }
   };
 
   // FETCH CATEGORIES
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${CAT_API}/get`);
-      setCategories(res.data.data);
-    } catch {
-      setError("Failed to load categories");
+      const payload = await apiGet(`/category/get`);
+      setCategories(extractList(payload, ["data", "categories"]));
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      setCategories([]);
+      toast({ type: "error", title: "Could not load categories", message: msg });
     }
   };
 
@@ -298,9 +311,19 @@ export default function Jobs() {
       }
 
       if (editJob) {
-        await axios.put(`${JOB_API}/updateJob/${editJob._id}`, form);
+        const payload = await apiPut(`/job/updateJob/${editJob._id}`, form);
+        toast({
+          type: "success",
+          title: "Job updated",
+          message: payload?.message || "Job updated successfully.",
+        });
       } else {
-        await axios.post(`${JOB_API}/create`, form);
+        const payload = await apiPost(`/job/create`, form);
+        toast({
+          type: "success",
+          title: "Job created",
+          message: payload?.message || "Job created successfully.",
+        });
       }
 
       setOpen(false);
@@ -318,8 +341,10 @@ export default function Jobs() {
 
       fetchJobs();
       setError("");
-    } catch {
-      setError("Something went wrong");
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      toast({ type: "error", title: "Save failed", message: msg });
     }
   };
 
@@ -337,26 +362,39 @@ export default function Jobs() {
   if (!confirm("Delete this job?")) return;
 
   try {
-    await axios.delete(`${JOB_API}/${id}`); // 👈 FIX
+    const payload = await apiDelete(`/job/${id}`);
     fetchJobs();
+    toast({
+      type: "success",
+      title: "Job deleted",
+      message: payload?.message || "Job deleted successfully.",
+    });
   } catch (err) {
-    console.error(err);
-    setError("Delete failed");
+    const msg = getApiErrorMessage(err);
+    setError(msg);
+    toast({ type: "error", title: "Delete failed", message: msg });
   }
 };
 
   // TOGGLE
   const handleToggle = async (id) => {
     try {
-      await axios.patch(`${JOB_API}/toggle/${id}`);
+      const payload = await apiPatch(`/job/toggle/${id}`);
       fetchJobs();
-    } catch {
-      setError("Toggle failed");
+      toast({
+        type: "success",
+        title: "Status updated",
+        message: payload?.message || "Job status updated.",
+      });
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setError(msg);
+      toast({ type: "error", title: "Toggle failed", message: msg });
     }
   };
 
   return (
-    <div className="h-screen mt-12 bg-white p-6">
+    <div className="min-h-screen mt-12 bg-white p-4 sm:p-6">
 
       {/* HEADER */}
       <div className="flex justify-between mb-6">
@@ -377,7 +415,7 @@ export default function Jobs() {
       )}
 
       {/* JOB CARDS */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {jobs.map((job) => (
           <div key={job._id} className="border p-4 rounded-xl shadow-sm">
             <h2 className="font-semibold">{job.title}</h2>
@@ -405,85 +443,69 @@ export default function Jobs() {
       </div>
 
       {/* MODAL */}
-      {open && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-
-          <div className="bg-white w-full max-w-xl p-6 rounded-2xl">
-
-            <h2 className="text-xl font-semibold mb-4">
-              {editJob ? "Update Job" : "Add Job"}
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3">
-              <input name="title" placeholder="Title" value={form.title} onChange={handleChange} className="input" />
-              <input name="company" placeholder="Company" value={form.company} onChange={handleChange} className="input" />
-              <input name="location" placeholder="Location" value={form.location} onChange={handleChange} className="input" />
-              <input name="salary" placeholder="Salary" value={form.salary} onChange={handleChange} className="input" />
-            </div>
-
-            <select name="type" value={form.type} onChange={handleChange} className="input mt-3 w-full">
-              <option>Full-time</option>
-              <option>Part-time</option>
-              <option>Internship</option>
-            </select>
-
-            <select name="mode" value={form.mode} onChange={handleChange} className="input mt-3 w-full">
-              <option>On-site</option>
-              <option>Remote</option>
-              <option>Hybrid</option>
-            </select>
-
-            {/* CATEGORY DROPDOWN */}
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className="input mt-3 w-full"
+      <Modal
+        open={open}
+        title={editJob ? "Update Job" : "Add Job"}
+        onClose={() => {
+          setOpen(false);
+          setEditJob(null);
+        }}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setEditJob(null);
+              }}
+              className="btn btn-outline"
             >
-              
-              <option value="">select category</option>
-              {/* <option value="">Opration</option>
-              <option value="">It</option>
-              <option value="">HR</option>
-              <option value="">insuhrance</option>
-              <option value="">sales</option> */}
-
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                  
-                </option>
-              ))}
-            </select>
-           
-
-
-
-            <textarea
-              name="description"
-              placeholder="Description"
-              value={form.description}
-              onChange={handleChange}
-              className="input mt-3 w-full"
-            />
-
-            <div className="flex justify-end gap-3 mt-4">
-              <button onClick={() => setOpen(false)} className="border px-3 py-1 rounded">
-                Cancel
-              </button>
-
-              <button
-                onClick={handleSubmit}
-                className="bg-[#F6C85F] text-white px-4 py-1 rounded"
-              >
-                Save
-              </button>
-            </div>
-
-          </div>
+              Cancel
+            </button>
+            <button type="button" onClick={handleSubmit} className="btn btn-primary">
+              Save
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input name="title" placeholder="Title" value={form.title} onChange={handleChange} className="input" />
+          <input name="company" placeholder="Company" value={form.company} onChange={handleChange} className="input" />
+          <input name="location" placeholder="Location" value={form.location} onChange={handleChange} className="input" />
+          <input name="salary" placeholder="Salary" value={form.salary} onChange={handleChange} className="input" />
         </div>
-      )
-      }
+
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <select name="type" value={form.type} onChange={handleChange} className="input">
+            <option>Full-time</option>
+            <option>Part-time</option>
+            <option>Internship</option>
+          </select>
+
+          <select name="mode" value={form.mode} onChange={handleChange} className="input">
+            <option>On-site</option>
+            <option>Remote</option>
+            <option>Hybrid</option>
+          </select>
+        </div>
+
+        <select name="category" value={form.category} onChange={handleChange} className="input mt-3 w-full">
+          <option value="">Select category</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+
+        <textarea
+          name="description"
+          placeholder="Description"
+          value={form.description}
+          onChange={handleChange}
+          className="input mt-3 w-full min-h-[110px]"
+        />
+      </Modal>
     </div >
   );
 }

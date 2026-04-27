@@ -1,22 +1,52 @@
 @import "tailwindcss";
-@keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+
+.input {
+  @apply w-full border border-gray-300 bg-white rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#F6C85F]/80 focus:border-yellow-300;
 }
 
-.marquee {
-  width: max-content;
-  animation: marquee 25s linear infinite;
+/* App-wide UI primitives (keeps pages consistent) */
+.container-app {
+  @apply max-w-7xl mx-auto px-4 sm:px-6;
 }
 
-.marquee:hover {
-  animation-play-state: paused;
+.card {
+  @apply bg-white border border-gray-200 rounded-2xl shadow-sm;
 }
 
+.badge {
+  @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold;
+}
+
+.badge-soft {
+  @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+    focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none;
+}
+
+.btn-primary {
+  @apply bg-[#F6C85F] text-gray-900 hover:bg-[#f2bf45] focus:ring-yellow-300;
+}
+
+.btn-outline {
+  @apply border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 focus:ring-gray-300;
+}
+
+.btn-ghost {
+  @apply bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-200;
+}
+
+.section-title {
+  @apply text-2xl sm:text-3xl font-bold text-gray-900;
+}
+
+.section-subtitle {
+  @apply text-gray-600 text-sm sm:text-base;
+}
+
+/* Single definition — avoids conflicting duplicate rules */
 @keyframes marquee {
   0% {
     transform: translateX(0%);

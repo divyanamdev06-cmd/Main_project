@@ -1,54 +1,3 @@
-// import React from "react";
-
-// const companies = [
-//   "Kotak",
-//   "LTIMindtree",
-//   "NTT DATA",
-//   "Capgemini",
-//   "Reliance Nippon",
-//   "Jio",
-//   "Hewlett Packard",
-// ];
-
-// const CoolPlaces = () => {
-//   return (
-//     <div className="w-full bg-[#f6eddc] py-16 overflow-hidden">
-//       {/* Heading */}
-//       <div className="flex justify-center items-center mb-10">
-//         <div className="bg-[#e9dfc9] px-6 py-2 rounded-full text-sm font-semibold tracking-wide text-gray-700 shadow-sm">
-//           COOL PLACES TO WORK
-//         </div>
-//       </div>
-
-//       {/* Marquee */}
-//       <div className="relative w-full overflow-hidden">
-//         <div className="flex gap-6 animate-marquee whitespace-nowrap">
-//           {companies.concat(companies).map((company, index) => (
-//             <div
-//               key={index}
-//               className="bg-white px-8 py-4 rounded-xl shadow-sm flex items-center justify-center min-w-[180px]"
-//             >
-//               <span className="text-gray-600 font-medium">
-//                 {company}
-//               </span>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-
-//       {/* Bottom Illustration */}
-//       <div className="flex justify-center mt-16">
-//         <img
-//           src="https://candidate-static.s3.ap-south-1.amazonaws.com/c/s1/images/candidate/nova/home/img_coolPlaceToWork.svg"
-//           alt="working illustration"
-//           className="w-[300px] opacity-90"
-//         />
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CoolPlaces;
 import React from "react";
 
 const companies = [
@@ -62,47 +11,40 @@ const companies = [
 
 const CoolPlaces = () => {
   return (
-    <div className="w-full bg-gradient-to-b from-[#f6eddc] to-[#e8dab8] py-16">
+    <section className="border-t border-gray-100 bg-linear-to-b from-[#f6eddc] to-[#e8dab8] py-12 sm:py-16">
+      <div className="container-app">
+        <div className="flex justify-center">
+          <span className="rounded-full border border-amber-200/80 bg-[#e9dfc9] px-5 py-2 text-sm font-semibold text-gray-800 shadow-sm">
+            Cool places to work
+          </span>
+        </div>
 
-      {/* Container (IMPORTANT for left-right spacing) */}
-      <div className="max-w-6xl mx-auto px-4">
-
-        {/* Heading */}
-        <div className="flex justify-center mb-10">
-          <div className="bg-[#e9dfc9] px-6 py-2 rounded-full text-sm font-semibold text-gray-700 shadow">
-            COOL PLACES TO WORK
+        <div className="mt-8 overflow-x-hidden">
+          <div className="marquee flex gap-4 sm:gap-6">
+            {[...companies, ...companies].map((logo, index) => (
+              <div
+                key={`${logo}-${index}`}
+                className="flex min-w-[150px] shrink-0 items-center justify-center rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-black/5 transition hover:shadow-md sm:min-w-[170px]"
+              >
+                <img
+                  src={logo}
+                  alt=""
+                  className="h-8 max-h-10 object-contain grayscale transition hover:grayscale-0 sm:h-10"
+                />
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Marquee Wrapper */}
-        <div className="marquee flex gap-6 items-center">
-
-          {[...companies, ...companies].map((logo, index) => (
-            <div
-              key={index}
-              className="bg-white px-6 py-4 rounded-2xl shadow-sm flex items-center justify-center min-w-[160px] sm:min-w-[180px] hover:shadow-md transition"
-            >
-              <img
-                src={logo}
-                alt="company"
-                className="h-8 sm:h-10 object-contain grayscale hover:grayscale-0 transition duration-300"
-              />
-            </div>
-          ))}
-
-        </div>
-
-        {/* Illustration */}
-        <div className="flex justify-center mt-16">
+        <div className="mt-12 flex justify-center">
           <img
             src="https://candidate-static.s3.ap-south-1.amazonaws.com/c/s1/images/candidate/nova/home/img_coolPlaceToWork.svg"
             alt=""
-            className="w-[360px] md:w-[350px]"
+            className="h-auto w-full max-w-[300px] sm:max-w-[340px]"
           />
         </div>
-
       </div>
-    </div>
+    </section>
   );
 };
 
