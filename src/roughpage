@@ -1,0 +1,70 @@
+<!-- // import Navbar from "./components/Navbar";
+// import Hero from "./components/Hero";
+import Cards from "./components/Cards";
+// import ExploreJobs from "./components/ExploreJobs";
+// import CoolPlaces from "./components/CoolPlaces";
+// import TopStartups from "./components/TopStartups";
+// import Blogs from "./components/Blogs";
+// import Footer from "./components/Footer";
+import Signup from "./components/Signup";
+// import Login from "./components/Login";
+
+{/* <Navbar />
+      <Hero />
+      
+      <ExploreJobs />
+      <CoolPlaces />
+      <TopStartups />
+      <Blogs />
+      <Footer />
+      <Signup />
+      <Login /> */}
+
+
+{/* <Route path="/Hero" element={<Hero />} />
+          <Route path="/Cards" element={<Cards />} />
+          <Route path="/ExploerJobs" element={<ExploreJobs />} />
+          <Route path="/CoolPlaces" element={<CoolPlaces />} />
+          <Route path="/Topstartups" element={<TopStartups />} />
+          <Route path="/Blogs" element={<Blogs />} />
+          <Route path="/singup" element={<Signup/>} />
+          <Route path="/login" element={<login/>} /> */}
+      {/* <Navbar />
+
+          <Routes>
+            <Route path="/" element={<h1 className="p-10">Home Page</h1>} />
+            <Route path="/login" element={<Signup />} />
+          </Routes> */} -->
+
+          <main className="p-6 space-y-6 overflow-y-auto">
+          {/* Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card title="Total Users" value="3" />
+            <Card title="Revenue" value="$10,000" />
+            <Card title="Jobs" value="0" />
+            <Card title="Growth" value="+10%" />
+          </div>
+
+          {/* Table Section */}
+          <div className="bg-white rounded-2xl shadow p-5">
+            <h2 className="text-lg font-semibold mb-4">Recent Users</h2>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="text-gray-500 border-b">
+                    <th className="py-2">Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <TableRow name="Divya" email="divya@mail.com" status="Active" />
+                  <TableRow name="Rahul" email="rahul@mail.com" status="Pending" />
+                  <TableRow name="Amit" email="amit@mail.com" status="Blocked" />
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
