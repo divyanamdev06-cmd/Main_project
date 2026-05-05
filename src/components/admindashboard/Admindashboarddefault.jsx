@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   ArrowRight,
@@ -49,38 +49,113 @@ const quickLinks = [
   { to: "/admin/analytics", label: "Analytics", desc: "Overview metrics", icon: TrendingUp },
 ];
 
+function DonutChart({ rows }) {
+  const palette = [
+    "#F6C85F",
+    "#60A5FA",
+    "#34D399",
+    "#F472B6",
+    "#A78BFA",
+    "#FB923C",
+    "#94A3B8",
+  ];
+
+  const normalized = (rows || [])
+    .map((r, i) => ({
+      label: String(r.label || r.key || r._id || "Unknown"),
+      value: Number(r.value ?? r.count ?? 0),
+      color: palette[i % palette.length],
+    }))
+    .filter((r) => r.value > 0);
+
+  const total = normalized.reduce((sum, r) => sum + r.value, 0);
+  if (!total) {
+    return (
+      <div className="rounded-2xl border border-slate-200/90 bg-slate-50/60 p-6 text-center text-sm text-slate-600">
+        No data yet.
+      </div>
+    );
+  }
+
+  let acc = 0;
+  const stops = normalized
+    .map((s) => {
+      const start = acc;
+      const end = acc + (s.value / total) * 100;
+      acc = end;
+      return `${s.color} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+    })
+    .join(", ");
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-[220px_1fr] sm:items-center">
+      <div className="flex items-center justify-center">
+        <div
+          className="relative h-44 w-44 rounded-full ring-1 ring-slate-200 shadow-sm"
+          style={{ background: `conic-gradient(${stops})` }}
+          aria-label="Donut chart"
+        >
+          <div className="absolute inset-5 rounded-full bg-white ring-1 ring-slate-100" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total</div>
+              <div className="text-3xl font-extrabold text-slate-900 tabular-nums">{total}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul className="grid gap-2">
+        {normalized.map((s) => {
+          const pct = Math.round((s.value / total) * 100);
+          return (
+            <li key={s.label} className="flex items-center justify-between gap-3 text-sm">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="h-3 w-3 rounded-full ring-1 ring-black/10" style={{ background: s.color }} />
+                <span className="truncate font-semibold text-slate-800">{s.label}</span>
+              </div>
+              <div className="shrink-0 font-semibold text-slate-700 tabular-nums">
+                {s.value} <span className="text-slate-400">({pct}%)</span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export default function Admindashboarddefault() {
   const [loading, setLoading] = useState(true);
-  const [totals, setTotals] = useState({
-    users: 0,
-    activeUsers: 0,
-    jobs: 0,
-    activeJobs: 0,
-  });
+  const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         setLoading(true);
-        const [usersRes, jobsRes] = await Promise.all([
+        const [usersRes, jobsRes, analyticsRes] = await Promise.all([
           apiGet("/user/getalluser"),
           apiGet("/job/get"),
+          apiGet("/analytics/admin"),
         ]);
         if (cancelled) return;
         const users = extractList(usersRes, ["data", "users"]);
         const jobs = extractList(jobsRes, ["data", "jobs"]);
         const activeUsers = users.filter((u) => u.status === "Active" || u.isActive !== false).length;
         const activeJobs = jobs.filter((j) => j.isActive).length;
-        setTotals({
-          users: users.length,
-          activeUsers,
-          jobs: jobs.length,
-          activeJobs,
+        setAnalytics({
+          totals: {
+            users: users.length,
+            activeUsers,
+            jobs: jobs.length,
+            activeJobs,
+          },
+          analytics: analyticsRes?.data || null,
         });
       } catch (e) {
         if (!cancelled) {
-          setTotals({ users: 0, activeUsers: 0, jobs: 0, activeJobs: 0 });
+          setAnalytics(null);
           console.warn(getApiErrorMessage(e));
         }
       } finally {
@@ -91,6 +166,30 @@ export default function Admindashboarddefault() {
       cancelled = true;
     };
   }, []);
+
+  const totals = analytics?.totals || { users: 0, activeUsers: 0, jobs: 0, activeJobs: 0 };
+  const a = analytics?.analytics;
+  const byRole = useMemo(() => {
+    const u = a?.users;
+    if (!u) return [];
+    return [
+      { label: "Job seekers", value: u.jobSeekers || 0 },
+      { label: "Recruiters", value: u.recruiters || 0 },
+      { label: "Admins", value: u.admins || 0 },
+    ];
+  }, [a]);
+
+  const byAppStatus = useMemo(() => {
+    const m = a?.applications?.byStatus || {};
+    return [
+      { label: "Pending", value: m.pending || 0 },
+      { label: "Reviewed", value: m.reviewed || 0 },
+      { label: "Shortlisted", value: m.shortlisted || 0 },
+      { label: "Rejected", value: m.rejected || 0 },
+    ];
+  }, [a]);
+
+  const topJobs = Array.isArray(a?.jobsByApplications) ? a.jobsByApplications.slice(0, 6) : [];
 
   return (
     <div className="w-full max-w-6xl">
@@ -137,6 +236,55 @@ export default function Admindashboarddefault() {
           icon={Briefcase}
           tone="indigo"
         />
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
+          <h2 className="text-base font-bold text-slate-900">Users by role</h2>
+          <p className="mt-1 text-xs text-slate-500">Breakdown of accounts across JobNest.</p>
+          {loading ? <p className="mt-10 text-center text-sm text-slate-500">Loading…</p> : <DonutChart rows={byRole} />}
+        </div>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
+          <h2 className="text-base font-bold text-slate-900">Application pipeline</h2>
+          <p className="mt-1 text-xs text-slate-500">Share of applications by status.</p>
+          {loading ? (
+            <p className="mt-10 text-center text-sm text-slate-500">Loading…</p>
+          ) : (
+            <DonutChart rows={byAppStatus} />
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">Top jobs by applications</h2>
+            <p className="mt-1 text-xs text-slate-500">Highest application volume across the platform.</p>
+          </div>
+          <NavLink to="/admin/analytics" className="text-sm font-semibold text-indigo-700 hover:underline">
+            View full analytics →
+          </NavLink>
+        </div>
+        {loading ? (
+          <p className="mt-8 text-center text-sm text-slate-500">Loading…</p>
+        ) : topJobs.length ? (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {topJobs.map((j) => (
+              <div key={String(j.jobId || j.title)} className="rounded-2xl border border-slate-200/90 bg-slate-50/40 p-4">
+                <p className="truncate text-sm font-bold text-slate-900">{j.title || "—"}</p>
+                <p className="truncate text-xs text-slate-500">{j.company || ""}</p>
+                <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-600">
+                  <span className="badge badge-soft">Total: {j.applicationCount ?? 0}</span>
+                  <span>Pending {j.pending ?? 0}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/60 p-6 text-center text-sm text-slate-600">
+            No applications yet.
+          </div>
+        )}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-5">
